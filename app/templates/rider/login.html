@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#7B2D26">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Megha Rider">
+  <link rel="manifest" href="/static/rider-manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <link rel="icon" href="/static/icons/icon-192.png">
+  <title>Rider login | Megha Hotel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #7B2D26 0%, #5A1F1A 50%, #3D1512 100%);
+      padding: 1.25rem;
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .box {
+      width: 100%;
+      max-width: 380px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 1.75rem 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+    .logo-icon {
+      width: 64px; height: 64px;
+      background: #7B2D26;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .box h1 { font-size: 1.4rem; color: #7B2D26; margin: 0 0 0.25rem; text-align: center; }
+    .box .sub { color: #78716C; font-size: 0.9rem; margin-bottom: 1.5rem; text-align: center; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #44403C; margin-bottom: 0.35rem; }
+    .form-group input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1.5px solid #E7E0D5;
+      border-radius: 12px;
+      font-size: 1rem;
+      background: #FAF7F2;
+      transition: border-color .15s;
+    }
+    .form-group input:focus { outline: none; border-color: #7B2D26; background: #fff; }
+    .btn-primary {
+      width: 100%;
+      padding: 0.95rem;
+      background: #7B2D26;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      -webkit-appearance: none;
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .alert { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; }
+    .alert-error, .alert-danger { background: #FEF2F2; color: #B91C1C; }
+    .alert-success { background: #F0FDF4; color: #15803D; }
+    .install-hint {
+      margin-top: 1.25rem;
+      text-align: center;
+      color: rgba(255,255,255,.75);
+      font-size: 0.8rem;
+      max-width: 320px;
+    }
+    .install-hint strong { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">
+      <div class="logo-icon">🛵</div>
+      <h1>Rider login</h1>
+      <p class="sub">Megha Hotel delivery · not the admin panel</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post" action="{{ url_for('rider.login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autocomplete="username" autocapitalize="off" spellcheck="false" inputmode="text">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary">Sign in</button>
+    </form>
+  </div>
+  <p class="install-hint">
+    <strong>Add to Home Screen</strong> for app-like experience<br>
+    (Safari: Share → Add to Home Screen · Chrome: Install app)
+  </p>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/rider-sw.js', { scope: '/rider/' }).catch(function(){});
+    }
+  </script>
+</body>
+</html>

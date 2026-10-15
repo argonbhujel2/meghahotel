@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Today's Orders</div><div class="value">{{ total_orders_today }}</div></div>
+  <div class="stat-card"><div class="label">Awaiting Accept</div><div class="value">{{ pending_orders }}</div></div>
+  <div class="stat-card"><div class="label">Preparing</div><div class="value">{{ preparing }}</div></div>
+  <div class="stat-card"><div class="label">Ready to Serve</div><div class="value">{{ ready }}</div></div>
+  <div class="stat-card"><div class="label">Today's Sales</div><div class="value">{{ format_price(sales_today) }}</div></div>
+  <div class="stat-card"><div class="label">Pending Reservations</div><div class="value">{{ pending_reservations }}</div></div>
+  <div class="stat-card"><div class="label">Confirmed (upcoming)</div><div class="value">{{ confirmed_reservations }}</div></div>
+  <div class="stat-card"><div class="label">Active Tables</div><div class="value">{{ active_tables }}</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+  <div class="panel">
+    <h2>Recent Orders</h2>
+    {% if recent_orders %}
+    <table class="admin-table">
+      <thead><tr><th>Order</th><th>Table</th><th>Status</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}">{{ o.order_number }}</a></td>
+          <td>{{ o.table.table_number if o.table else '—' }}</td>
+          <td><span class="status-badge status-{{ o.status }}">{{ o.status }}</span></td>
+          <td>{{ format_price(o.total_paisa) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#6B5344">No orders yet.</p>
+    {% endif %}
+  </div>
+  <div class="panel">
+    <h2>Popular Dishes</h2>
+    {% if popular %}
+    <table class="admin-table">
+      <thead><tr><th>Dish</th><th>Qty sold</th></tr></thead>
+      <tbody>
+        {% for name, qty in popular %}
+        <tr><td>{{ name }}</td><td>{{ qty }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#6B5344">No sales data yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

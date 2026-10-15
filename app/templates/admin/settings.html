@@ -1,0 +1,136 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin-upload.js') }}"></script>{% endblock %}
+{% block head %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endblock %}
+{% block page_title %}Restaurant Settings{% endblock %}
+{% block content %}
+<form method="post" class="panel" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h2 style="margin-bottom:1rem">Identity</h2>
+  <div class="form-row">
+    <div class="form-group"><label>Name</label><input type="text" name="name" value="{{ settings.name if settings else 'Megha Hotel' }}"></div>
+    <div class="form-group"><label>Tagline</label><input type="text" name="tagline" value="{{ settings.tagline if settings else '' }}"></div>
+  </div>
+  <div class="form-group"><label>About</label><textarea name="about_text" rows="3">{{ settings.about_text if settings and settings.about_text else '' }}</textarea></div>
+  <div class="form-group"><label>Logo</label>
+    <input type="file" name="logo_file" accept="image/*">
+    <input type="url" name="logo_url" value="{{ settings.logo_url if settings and settings.logo_url else '' }}" placeholder="Or URL" style="margin-top:0.5rem">
+    {% if settings and settings.logo_url %}<img src="{{ settings.logo_url }}" alt="" style="max-height:48px;margin-top:0.5rem">{% endif %}
+  </div>
+  <div class="form-group"><label>Hero title</label><input type="text" name="hero_title" value="{{ settings.hero_title if settings and settings.hero_title else '' }}"></div>
+  <div class="form-group"><label>Hero subtitle</label><input type="text" name="hero_subtitle" value="{{ settings.hero_subtitle if settings and settings.hero_subtitle else '' }}"></div>
+  <div class="form-group"><label>Hero image</label>
+    <input type="file" name="hero_file" accept="image/*">
+    <input type="url" name="hero_image_url" value="{{ settings.hero_image_url if settings and settings.hero_image_url else '' }}" placeholder="Or URL" style="margin-top:0.5rem">
+    {% if settings and settings.hero_image_url %}<img src="{{ settings.hero_image_url }}" alt="" style="max-width:240px;margin-top:0.5rem;border-radius:8px">{% endif %}
+  </div>
+
+  
+  
+  <h2 style="margin:1.5rem 0 1rem;color:#7B2D26">Delivery area (map)</h2>
+  <div class="panel" style="border:1px solid #E7E0D5;padding:1rem;margin-bottom:1rem;background:#FAF7F2">
+    <div class="form-group">
+      <label><input type="checkbox" name="delivery_enabled" value="1" {{ 'checked' if not settings or settings.delivery_enabled is not defined or settings.delivery_enabled else '' }}> Enable online delivery</label>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Restaurant / hub latitude</label>
+        <input type="text" name="delivery_center_lat" value="{{ settings.delivery_center_lat if settings and settings.delivery_center_lat else '26.663' }}" placeholder="26.663">
+      </div>
+      <div class="form-group">
+        <label>Restaurant / hub longitude</label>
+        <input type="text" name="delivery_center_lng" value="{{ settings.delivery_center_lng if settings and settings.delivery_center_lng else '87.590' }}" placeholder="87.590">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Max delivery radius (km)</label>
+        <input type="number" step="0.1" min="0.5" name="delivery_radius_km" value="{{ settings.delivery_radius_km if settings and settings.delivery_radius_km else 5 }}">
+      </div>
+      <div class="form-group">
+        <label>Base delivery fee (NPR)</label>
+        <input type="number" step="1" min="0" name="delivery_fee_npr" value="{{ ((settings.delivery_fee_paisa or 0) / 100) if settings else 0 }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Extra fee per km (NPR)</label>
+        <input type="number" step="1" min="0" name="delivery_fee_per_km_npr" value="{{ ((settings.delivery_fee_per_km_paisa or 0) / 100) if settings and settings.delivery_fee_per_km_paisa is defined else 0 }}">
+      </div>
+      <div class="form-group">
+        <label>Free delivery within (km)</label>
+        <input type="number" step="0.1" min="0" name="delivery_free_within_km" value="{{ settings.delivery_free_within_km if settings and settings.delivery_free_within_km is defined else 0 }}">
+      </div>
+    </div>
+    <p style="font-size:0.85rem;color:#78716C;margin-bottom:0.75rem">Fee = base + (distance × per km). Set free-within km to 0 to always charge base.</p>
+    <div class="form-group">
+      <label>Areas you deliver to (text)</label>
+      <textarea name="delivery_areas_text" rows="2" placeholder="Urlabari bazaar, Pathari, Belbari…">{{ settings.delivery_areas_text if settings and settings.delivery_areas_text else '' }}</textarea>
+    </div>
+    <p style="font-size:0.85rem;color:#78716C">Customers must turn on GPS. Orders outside the radius are blocked. Default center ≈ Urlabari.</p>
+  </div>
+
+  <h2 style="margin:1.5rem 0 1rem;color:#7B2D26">Download App – Google Play Store</h2>
+  <div class="form-group" style="border:2px dashed #C4A35A;padding:1rem;border-radius:8px;background:#FAF7F2">
+    <label style="font-weight:700">Play Store URL</label>
+    <input type="url" name="play_store_url" value="{{ settings.play_store_url if settings and settings.play_store_url is defined and settings.play_store_url else '' }}" placeholder="https://play.google.com/store/apps/details?id=your.app.id">
+    <p style="font-size:0.85rem;color:#78716C;margin-top:0.35rem">If empty, footer badge is not clickable. When filled, badge opens this link.</p>
+  </div>
+
+  <h2 style="margin:1.5rem 0 1rem">Contact</h2>
+  <div class="form-row">
+    <div class="form-group"><label>Phone</label><input type="text" name="phone" value="{{ settings.phone if settings and settings.phone else '' }}"></div>
+    <div class="form-group"><label>WhatsApp</label><input type="text" name="whatsapp" value="{{ settings.whatsapp if settings and settings.whatsapp else '' }}"></div>
+  </div>
+  <div class="form-group"><label>Email</label><input type="email" name="email" value="{{ settings.email if settings and settings.email else '' }}"></div>
+  <div class="form-group"><label>Address</label><textarea name="address" rows="2">{{ settings.address if settings and settings.address else '' }}</textarea></div>
+  <div class="form-group"><label>Map URL</label><input type="url" name="map_url" value="{{ settings.map_url if settings and settings.map_url else '' }}"></div>
+
+  <h2 style="margin:1.5rem 0 1rem">Theme</h2>
+  <div class="form-row">
+    <div class="form-group"><label>Primary color</label><input type="color" name="primary_color" value="{{ settings.primary_color if settings else '#7B2D26' }}"></div>
+    <div class="form-group"><label>Accent color</label><input type="color" name="accent_color" value="{{ settings.accent_color if settings else '#C4A35A' }}"></div>
+  </div>
+
+  <h2 style="margin:1.5rem 0 1rem">Operations</h2>
+  <div class="form-row">
+    <div class="form-group"><label>Tax %</label><input type="number" step="0.01" name="tax_rate_percent" value="{{ settings.tax_rate_percent if settings else 0 }}"></div>
+    <div class="form-group"><label>Service charge %</label><input type="number" step="0.01" name="service_charge_percent" value="{{ settings.service_charge_percent if settings else 0 }}"></div>
+  </div>
+  <div class="form-group">
+    <label><input type="checkbox" name="takeaway_enabled" value="1" {{ 'checked' if not settings or settings.takeaway_enabled else '' }}> Takeaway enabled</label>
+    <label style="margin-left:1rem"><input type="checkbox" name="reservation_enabled" value="1" {{ 'checked' if not settings or settings.reservation_enabled else '' }}> Reservations enabled</label>
+  </div>
+  <div class="form-group">
+    <label>Payment QR image</label>
+    <input type="file" name="payment_qr_file" accept="image/*">
+    <p style="font-size:0.85rem;color:#78716C;margin-top:0.35rem">Upload eSewa / Khalti / bank QR. Shown to customers when paying.</p>
+    <input type="url" name="payment_qr_image_url" value="{{ settings.payment_qr_image_url if settings and settings.payment_qr_image_url else '' }}" placeholder="Or paste image URL" style="margin-top:0.5rem">
+    {% if settings and settings.payment_qr_image_url %}
+    <div style="margin-top:0.75rem">
+      <p style="font-size:0.85rem;margin-bottom:0.35rem">Current QR:</p>
+      <img src="{{ settings.payment_qr_image_url }}" alt="Payment QR" style="max-width:180px;border-radius:8px;border:1px solid #e7e0d5;background:#fff;padding:0.5rem">
+    </div>
+    {% endif %}
+  </div>
+  <div class="form-group"><label>Payment instructions</label><textarea name="payment_instructions" rows="2">{{ settings.payment_instructions if settings and settings.payment_instructions else '' }}</textarea></div>
+
+  <h2 style="margin:1.5rem 0 1rem">SEO</h2>
+  <div class="form-group"><label>SEO title</label><input type="text" name="seo_title" value="{{ settings.seo_title if settings and settings.seo_title else '' }}"></div>
+  <div class="form-group"><label>SEO description</label><textarea name="seo_description" rows="2">{{ settings.seo_description if settings and settings.seo_description else '' }}</textarea></div>
+
+    <h2 style="margin:1.5rem 0 1rem">Opening hours</h2>
+  {% set days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'] %}
+  {% for day in days %}
+  {% set d = (hours or {}).get(day, {}) %}
+  <div class="form-row">
+    <div class="form-group"><label>{{ day | capitalize }} open</label><input type="time" name="{{ day }}_open" value="{{ d.get('open', '08:00') }}"></div>
+    <div class="form-group"><label>{{ day | capitalize }} close</label><input type="time" name="{{ day }}_close" value="{{ d.get('close', '21:00') }}"></div>
+  </div>
+  {% endfor %}
+
+
+  
+  <button type="submit" class="btn btn-primary">Save Settings</button>
+</form>
+{% endblock %}

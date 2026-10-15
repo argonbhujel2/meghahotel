@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if rider and rider.id else 'New' }} Rider{% endblock %}
+{% block page_title %}{{ 'Edit' if rider and rider.id else 'Add' }} Rider{% endblock %}
+{% block content %}
+<form method="post" class="panel" style="max-width:560px" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h3 style="margin-bottom:0.75rem">Profile</h3>
+  <div class="form-group"><label>Full name *</label><input type="text" name="full_name" value="{{ rider.full_name if rider else '' }}" required></div>
+  <div class="form-group"><label>Phone *</label><input type="text" name="phone" value="{{ rider.phone if rider else '' }}" required></div>
+  <div class="form-row">
+    <div class="form-group"><label>Vehicle</label>
+      <select name="vehicle_type">
+        {% for v in ['bike','scooter','cycle','car'] %}
+        <option value="{{ v }}" {{ 'selected' if rider and rider.vehicle_type == v else '' }}>{{ v }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group"><label>Vehicle number</label><input type="text" name="vehicle_number" value="{{ rider.vehicle_number if rider and rider.vehicle_number else '' }}"></div>
+  </div>
+  <div class="form-group"><label>Photo</label><input type="file" name="photo_file" accept="image/*"></div>
+
+  <h3 style="margin:1.25rem 0 0.75rem;color:#7B2D26">Rider app login (/rider)</h3>
+  <p style="font-size:0.85rem;color:#78716C;margin-bottom:0.75rem">Rider opens <strong>/rider/login</strong> with this username &amp; password (separate from admin).</p>
+  <div class="form-group">
+    <label>Username *</label>
+    <input type="text" name="username" value="{{ rider.username if rider and rider.username else '' }}" autocomplete="off" placeholder="e.g. ram_rider" required>
+  </div>
+  <div class="form-group">
+    <label>Password {% if rider and rider.password_hash %}(leave blank to keep current){% else %}*{% endif %}</label>
+    <input type="password" name="password" autocomplete="new-password" placeholder="••••••••" {{ '' if rider and rider.password_hash else 'required' }}>
+  </div>
+
+  <div class="form-group"><label>Notes</label><textarea name="notes" rows="2">{{ rider.notes if rider and rider.notes else '' }}</textarea></div>
+  <div class="form-group">
+    <label><input type="checkbox" name="is_active" value="1" {{ 'checked' if not rider or rider.is_active else '' }}> Active (can log in)</label>
+    <label style="margin-left:1rem"><input type="checkbox" name="is_available" value="1" {{ 'checked' if not rider or rider.is_available else '' }}> Available</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Save rider</button>
+  <a href="{{ url_for('admin.riders_list') }}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

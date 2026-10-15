@@ -1,0 +1,17 @@
+Flask>=3.0.0
+Flask-Login>=0.6.3
+Flask-WTF>=1.2.0
+Werkzeug>=3.0.0
+SQLAlchemy>=2.0.0
+python-dotenv>=1.0.0
+qrcode[pil]>=7.4
+Pillow>=10.0.0
+email-validator>=2.0.0
+python-dateutil>=2.8.0
+pytz>=2024.1
+gunicorn>=21.0.0
+WTForms>=3.0.0
+cloudinary>=1.36.0
+# Turso (libSQL) – required for production remote DB on Vercel
+sqlalchemy-libsql>=0.1.0
+libsql-client>=0.3.0

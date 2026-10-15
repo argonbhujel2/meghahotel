@@ -1,0 +1,218 @@
+{% extends "admin/base.html" %}
+{% block title %}Order {{ order.order_number }}
+{% if order.order_type == 'delivery' or riders is defined %}
+<div class="panel">
+  <h2>Delivery / Rider</h2>
+  <p style="margin-bottom:0.75rem">Type: <strong>{{ order.order_type }}</strong>
+    {% if order.delivery_address %}<br>Address: {{ order.delivery_address }}{% endif %}
+    {% if order.delivery_status %}<br>Delivery status: {{ order.delivery_status }}{% endif %}
+  </p>
+  <form method="post" action="{{ url_for('admin.assign_rider', order_id=order.id) }}" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group" style="margin:0">
+      <label>Assign rider</label>
+      <select name="rider_id">
+        <option value="">— Select —</option>
+        {% for r in riders or [] %}
+        <option value="{{ r.id }}" {{ 'selected' if order.rider_id == r.id else '' }}>{{ r.full_name }} ({{ r.phone }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Delivery status</label>
+      <select name="delivery_status">
+        {% for s in ['pending_pickup','picked_up','on_the_way','nearby','delivered'] %}
+        <option value="{{ s }}" {{ 'selected' if order.delivery_status == s else '' }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update delivery</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block page_title %}Order {{ order.order_number }}
+{% if order.order_type == 'delivery' or riders is defined %}
+<div class="panel">
+  <h2>Delivery / Rider</h2>
+  <p style="margin-bottom:0.75rem">Type: <strong>{{ order.order_type }}</strong>
+    {% if order.delivery_address %}<br>Address: {{ order.delivery_address }}{% endif %}
+    {% if order.delivery_status %}<br>Delivery status: {{ order.delivery_status }}{% endif %}
+  </p>
+  <form method="post" action="{{ url_for('admin.assign_rider', order_id=order.id) }}" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group" style="margin:0">
+      <label>Assign rider</label>
+      <select name="rider_id">
+        <option value="">— Select —</option>
+        {% for r in riders or [] %}
+        <option value="{{ r.id }}" {{ 'selected' if order.rider_id == r.id else '' }}>{{ r.full_name }} ({{ r.phone }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Delivery status</label>
+      <select name="delivery_status">
+        {% for s in ['pending_pickup','picked_up','on_the_way','nearby','delivered'] %}
+        <option value="{{ s }}" {{ 'selected' if order.delivery_status == s else '' }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update delivery</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+    <div>
+      <p>Status: <span class="status-badge status-{{ order.status }}">{{ order.status }}</span></p>
+      <p>Payment: {{ order.payment_status }}</p>
+      <p>Type: {{ order.order_type }} {% if order.table %}· Table {{ order.table.table_number }}{% endif %}</p>
+      {% if order.customer_name %}<p>Customer: {{ order.customer_name }}</p>{% endif %}
+      {% if order.customer_email %}<p>Email: {{ order.customer_email }}</p>{% endif %}
+      {% if order.customer_phone %}<p>Phone: {{ order.customer_phone }}</p>{% endif %}
+      <p>Tracking: <a href="{{ url_for('public.track_order', token=order.tracking_token) }}" target="_blank">Open public track page</a></p>
+    </div>
+    <div>
+      <strong style="font-size:1.25rem">{{ format_price(order.total_paisa) }}</strong>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom:0.5rem">Items</h3>
+  <table class="admin-table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for i in order.items %}
+      <tr>
+        <td>{{ i.item_name }}{% if i.variant_name %} ({{ i.variant_name }}){% endif %}
+          {% if i.addons %}<br><small>{% for a in i.addons %}+ {{ a.addon_name }}{% if not loop.last %}, {% endif %}{% endfor %}</small>{% endif %}
+          {% if i.special_instructions %}<br><small>Note: {{ i.special_instructions }}</small>{% endif %}
+        </td>
+        <td>{{ i.quantity }}</td>
+        <td>{{ format_price(i.unit_price_paisa) }}</td>
+        <td>{{ format_price(i.line_total_paisa) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if order.special_instructions %}
+  <p style="margin-top:1rem"><strong>Order notes:</strong> {{ order.special_instructions }}</p>
+  {% endif %}
+</div>
+
+{% if next_statuses %}
+<div class="panel">
+  <h2>Update Status</h2>
+  <form method="post" action="{{ url_for('admin.order_status_update', order_id=order.id) }}" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group" style="margin:0">
+      <label>New status</label>
+      <select name="status" required>
+        {% for s in next_statuses %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Prep time (min)</label>
+      <input type="number" name="prep_time_minutes" min="1" max="120" style="width:90px" placeholder="e.g. 20">
+    </div>
+    <div class="form-group" style="margin:0;flex:1;min-width:140px">
+      <label>Note</label>
+      <input type="text" name="note" placeholder="Optional">
+    </div>
+    <label style="font-size:0.85rem"><input type="checkbox" name="force" value="1"> Force (skip step rules)</label>
+    <button type="submit" class="btn btn-primary">Update</button>
+  </form>
+  <p style="margin-top:0.75rem;font-size:0.85rem;color:#6B5344">
+    Flow: placed → accepted → preparing → ready → served → completed
+  </p>
+</div>
+{% else %}
+<div class="panel">
+  <p style="color:#6B5344">This order is <strong>{{ order.status }}</strong> — no further status changes.</p>
+</div>
+{% endif %}
+
+{% if order.status_history %}
+<div class="panel">
+  <h2>History</h2>
+  <ul style="list-style:none;padding:0">
+    {% for h in order.status_history|sort(attribute='created_at') %}
+    <li style="padding:0.4rem 0;border-bottom:1px solid #e8d5c4">
+      <strong>{{ h.status }}</strong>
+      <span style="color:#6B5344;font-size:0.85rem">
+        · {{ h.created_at.strftime('%d %b %H:%M') if h.created_at else '' }}
+        {% if h.note %} · {{ h.note }}{% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Record Payment</h2>
+  <form method="post" action="{{ url_for('admin.record_payment', order_id=order.id) }}" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group" style="margin:0">
+      <label>Amount (NPR)</label>
+      <input type="number" step="0.01" name="amount" value="{{ '%.2f'|format(order.total_paisa / 100) }}" required>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Method</label>
+      <select name="method">
+        <option value="cash">Cash</option>
+        <option value="esewa">eSewa</option>
+        <option value="khalti">Khalti</option>
+        <option value="fonepay">Fonepay</option>
+        <option value="bank_transfer">Bank transfer</option>
+        <option value="card">Card</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Reference</label>
+      <input type="text" name="transaction_ref">
+    </div>
+    <button type="submit" class="btn btn-accent">Record</button>
+  </form>
+</div>
+
+{% if order.order_type == 'delivery' or riders is defined %}
+<div class="panel">
+  <h2>Delivery / Rider</h2>
+  <p style="margin-bottom:0.75rem">Type: <strong>{{ order.order_type }}</strong>
+    {% if order.delivery_address %}<br>Address: {{ order.delivery_address }}{% endif %}
+    {% if order.delivery_status %}<br>Delivery status: {{ order.delivery_status }}{% endif %}
+  </p>
+  <form method="post" action="{{ url_for('admin.assign_rider', order_id=order.id) }}" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group" style="margin:0">
+      <label>Assign rider</label>
+      <select name="rider_id">
+        <option value="">— Select —</option>
+        {% for r in riders or [] %}
+        <option value="{{ r.id }}" {{ 'selected' if order.rider_id == r.id else '' }}>{{ r.full_name }} ({{ r.phone }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Delivery status</label>
+      <select name="delivery_status">
+        {% for s in ['pending_pickup','picked_up','on_the_way','nearby','delivered'] %}
+        <option value="{{ s }}" {{ 'selected' if order.delivery_status == s else '' }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update delivery</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}

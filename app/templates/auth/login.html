@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if restaurant and restaurant.logo_url %}<link rel="icon" href="{{ restaurant.logo_url }}">{% endif %}
+  <title>Sign In | {{ restaurant.name if restaurant else 'Megha Hotel' }} Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-visual">
+      <div>
+        <h1>Megha Hotel</h1>
+        <p style="opacity:0.9;font-size:1.15rem">Good Food. Great Moments.</p>
+        <p style="opacity:0.7;margin-top:1rem">Restaurant Management</p>
+      </div>
+    </div>
+    <div class="login-form-side">
+      <div class="login-box">
+        <h2>Sign In</h2>
+        <p class="subtitle">Staff access only</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        {% endwith %}
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autofocus autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:0.5rem">
+            <input type="checkbox" id="remember" name="remember" value="1">
+            <label for="remember" style="margin:0;font-weight:400">Remember me</label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

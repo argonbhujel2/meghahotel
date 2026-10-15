@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if item else 'New' }} Dish{% endblock %}
+{% block page_title %}{{ 'Edit' if item else 'New' }} Dish{% endblock %}
+{% block head %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endblock %}
+{% block content %}
+<form method="post" class="panel" style="max-width:600px" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-group"><label>Name</label><input type="text" name="name" value="{{ item.name if item else '' }}" required></div>
+  <div class="form-group"><label>Slug</label><input type="text" name="slug" value="{{ item.slug if item else '' }}" required></div>
+  <div class="form-group"><label>Category</label>
+    <select name="category_id" required>
+      {% for c in categories %}<option value="{{ c.id }}" {{ 'selected' if item and item.category_id == c.id else '' }}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="form-group"><label>Short description</label><input type="text" name="short_description" value="{{ item.short_description if item and item.short_description else '' }}"></div>
+  <div class="form-group"><label>Description</label><textarea name="description" rows="3">{{ item.description if item and item.description else '' }}</textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label>Price (NPR)</label><input type="number" step="0.01" name="price" value="{{ '%.2f'|format(item.price_paisa/100) if item else '' }}" required></div>
+    <div class="form-group"><label>Discounted price</label><input type="number" step="0.01" name="discounted_price" value="{{ '%.2f'|format(item.discounted_price_paisa/100) if item and item.discounted_price_paisa else '' }}"></div>
+  </div>
+  <div class="form-group">
+    <label>Dish photo</label>
+    <input type="file" name="image_file" accept="image/*" id="image_file_input">
+    <p style="font-size:0.85rem;color:#6B5344;margin-top:0.35rem">Select a photo and click Save — it will appear on the public menu.</p>
+    <input type="hidden" name="image_url" id="image_url" value="{{ item.image_url if item and item.image_url else '' }}">
+    {% if item and item.image_url %}
+    <div style="margin-top:0.75rem">
+      <p style="font-size:0.85rem">Current photo:</p>
+      <img src="{{ item.image_url }}" alt="" style="max-width:200px;border-radius:8px;border:1px solid #e8d5c4">
+    </div>
+    {% endif %}
+  </div>
+  <div class="form-group"><label>Prep time (minutes)</label><input type="number" name="prep_time_minutes" value="{{ item.prep_time_minutes if item and item.prep_time_minutes else '' }}"></div>
+  <div class="form-group"><label>Dietary labels</label><input type="text" name="dietary_labels" value="{{ item.dietary_labels if item and item.dietary_labels else '' }}" placeholder="veg, gluten-free"></div>
+  <div class="form-group"><label>Allergens</label><input type="text" name="allergens" value="{{ item.allergens if item and item.allergens else '' }}"></div>
+  <div class="form-group"><label>Display order</label><input type="number" name="display_order" value="{{ item.display_order if item else 0 }}"></div>
+  <div class="form-group">
+    <label><input type="checkbox" name="is_available" value="1" {{ 'checked' if not item or item.is_available else '' }}> Available</label>
+    <label style="margin-left:1rem"><input type="checkbox" name="is_featured" value="1" {{ 'checked' if item and item.is_featured else '' }}> Featured</label>
+    <label style="margin-left:1rem"><input type="checkbox" name="is_popular" value="1" {{ 'checked' if item and item.is_popular else '' }}> Popular</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('admin.menu_list') }}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

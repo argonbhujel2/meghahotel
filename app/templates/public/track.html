@@ -1,0 +1,227 @@
+{% extends "public/base.html" %}
+{% block title %}Track Order {{ order.order_number }} | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:560px">
+    <div class="section-header">
+      <h2>Order {{ order.order_number }}</h2>
+      {% if order.table %}<p>Table {{ order.table.table_number }}</p>{% endif %}
+    </div>
+
+    {% set labels = {
+      'placed':'Order Placed',
+      'accepted':'Order Accepted',
+      'preparing':'Preparing',
+      'ready':'Ready to Serve',
+      'served':'Served',
+      'completed':'Completed',
+      'rejected':'Rejected',
+      'cancelled':'Cancelled'
+    } %}
+
+    
+    <div class="panel" id="delivery-panel" style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem;{% if order.order_type != 'delivery' %}display:none{% endif %}">
+      <h3 style="margin-bottom:0.75rem">Delivery</h3>
+      {% if order.delivery_address %}<p style="margin-bottom:0.5rem"><strong>Address:</strong> {{ order.delivery_address }}</p>{% endif %}
+      <p style="margin-bottom:0.75rem">Delivery status: <strong id="delivery-status">{{ order.delivery_status or 'pending_pickup' }}</strong></p>
+      <div id="rider-info">
+        {% if order.rider %}
+        <div style="display:flex;gap:1rem;align-items:center">
+          {% if order.rider.photo_url %}<img src="{{ order.rider.photo_url }}" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover">{% endif %}
+          <div>
+            <strong>{{ order.rider.full_name }}</strong>
+            <p style="font-size:0.9rem;color:var(--text-muted)">{{ order.rider.vehicle_type or 'Rider' }} · <a href="tel:{{ order.rider.phone }}">{{ order.rider.phone }}</a></p>
+          </div>
+        </div>
+        {% else %}
+        <p style="color:var(--text-muted)">Rider will be assigned soon.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="panel" style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem">
+      <p style="margin-bottom:0.5rem">Status: <strong id="order-status">{{ labels.get(order.status, order.status) }}</strong></p>
+      <p style="color:var(--text-muted);font-size:0.9rem">
+        {{ order.created_at.strftime('%d %b %Y, %I:%M %p') if order.created_at else '' }}
+        · Total: <strong>Rs. {{ '%.2f'|format(order.total_paisa / 100) }}</strong>
+        · Payment: {{ order.payment_status }}
+      </p>
+      {% if order.prep_time_estimate_minutes %}
+      <p style="margin-top:0.5rem">Estimated prep: ~{{ order.prep_time_estimate_minutes }} min</p>
+      {% endif %}
+      {% if order.cancellation_reason %}
+      <p style="margin-top:0.5rem;color:#9B2226">Cancelled: {{ order.cancellation_reason }}</p>
+      {% endif %}
+      {% if order.rejection_reason %}
+      <p style="margin-top:0.5rem;color:#9B2226">Rejected: {{ order.rejection_reason }}</p>
+      {% endif %}
+      {% if order.status == 'placed' %}
+      <button type="button" id="cancel-order-btn" class="btn btn-outline btn-sm" style="margin-top:1rem;color:#9B2226;border-color:#9B2226">Cancel Order</button>
+      {% endif %}
+    </div>
+
+    
+
+    {% if order.order_type == 'delivery' %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <div class="panel" id="live-map-panel" style="padding:0;overflow:hidden;margin-bottom:1.5rem">
+      <div id="track-map" style="height:300px;width:100%;background:#e8e4dc"></div>
+      <p id="map-legend" style="padding:0.75rem 1rem;font-size:0.85rem;color:var(--text-muted);margin:0">
+        {% set ds = order.delivery_status or 'pending_pickup' %}
+        {% if ds in ['picked_up', 'on_the_way', 'nearby', 'delivered'] %}
+        📍 Your location · 🛵 Rider live on map
+        {% else %}
+        Map will show the rider after they pick up your order.
+        {% endif %}
+      </p>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    (function(){
+      var TOKEN = {{ order.tracking_token | tojson }};
+      var customerLat = {{ order.customer_lat if order.customer_lat is not none else 'null' }};
+      var customerLng = {{ order.customer_lng if order.customer_lng is not none else 'null' }};
+      var PICKED_STATUSES = {picked_up:1, on_the_way:1, nearby:1, delivered:1};
+
+      var mapEl = document.getElementById('track-map');
+      if (!mapEl || typeof L === 'undefined') return;
+
+      var center = [customerLat || 26.663, customerLng || 87.590];
+      var map = L.map('track-map').setView(center, 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      var youIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#7B2D26;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">📍</div>',
+        iconSize: [28, 28], iconAnchor: [14, 14]
+      });
+      var riderIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#C4A35A;color:#1C1917;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">🛵</div>',
+        iconSize: [32, 32], iconAnchor: [16, 16]
+      });
+
+      var youMarker = null, riderMarker = null, line = null;
+      if (customerLat && customerLng) {
+        youMarker = L.marker([customerLat, customerLng], {icon: youIcon})
+          .addTo(map).bindPopup('Your delivery location');
+      }
+
+      function setLegend(text) {
+        var el = document.getElementById('map-legend');
+        if (el) el.textContent = text;
+      }
+
+      function refresh() {
+        fetch('/api/track/' + encodeURIComponent(TOKEN) + '/delivery')
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if (d.error) return;
+            var st = document.getElementById('delivery-status');
+            if (st && d.delivery_status) st.textContent = d.delivery_status;
+
+            // Update rider card
+            var ri = document.getElementById('rider-info');
+            if (ri && d.rider) {
+              var phone = d.rider.phone ? '<a href="tel:' + d.rider.phone + '">' + d.rider.phone + '</a>' : '';
+              ri.innerHTML = '<div style="display:flex;gap:1rem;align-items:center">' +
+                (d.rider.photo_url ? '<img src="' + d.rider.photo_url + '" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover">' : '') +
+                '<div><strong>' + (d.rider.name || 'Rider') + '</strong>' +
+                '<p style="font-size:0.9rem;color:var(--text-muted)">' + (d.rider.vehicle_type || 'Rider') +
+                (phone ? ' · ' + phone : '') + '</p></div></div>';
+            }
+
+            var ds = d.delivery_status || 'pending_pickup';
+            var showRider = !!PICKED_STATUSES[ds];
+
+            if (!showRider) {
+              if (riderMarker) { map.removeLayer(riderMarker); riderMarker = null; }
+              if (line) { map.removeLayer(line); line = null; }
+              setLegend('Waiting for pickup — rider appears on map after they pick up your order.');
+              return;
+            }
+
+            if (d.rider && d.rider.lat != null && d.rider.lng != null) {
+              var rl = [d.rider.lat, d.rider.lng];
+              if (riderMarker) riderMarker.setLatLng(rl);
+              else riderMarker = L.marker(rl, {icon: riderIcon})
+                .addTo(map).bindPopup('🛵 ' + (d.rider.name || 'Rider') + ' — on the way');
+              if (customerLat && customerLng) {
+                if (line) map.removeLayer(line);
+                line = L.polyline([rl, [customerLat, customerLng]], {
+                  color: '#7B2D26', weight: 4, opacity: 0.85, dashArray: '6 8'
+                }).addTo(map);
+                map.fitBounds(line.getBounds(), {padding: [40, 40]});
+              } else {
+                map.setView(rl, 15);
+              }
+              setLegend('📍 You · 🛵 ' + (d.rider.name || 'Rider') + ' — live (updates every few seconds)');
+            } else {
+              setLegend('Rider picked up — waiting for their GPS. Ask rider to share location in the rider app.');
+            }
+          })
+          .catch(function(){});
+      }
+      refresh();
+      setInterval(refresh, 5000);
+      setTimeout(function(){ map.invalidateSize(); }, 200);
+    })();
+    </script>
+    {% endif %}
+
+    {% if order.status not in ['cancelled', 'rejected'] %}
+    <ul class="timeline" id="status-timeline">
+      {% set steps = ['placed','accepted','preparing','ready','served','completed'] %}
+      {% set cur = steps.index(order.status) if order.status in steps else 0 %}
+      {% for s in steps %}
+      <li class="{{ 'done' if loop.index0 <= cur else '' }} {{ 'current' if loop.index0 == cur else '' }}">
+        <strong>{{ labels[s] }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="panel" style="background:var(--white);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-top:1.5rem">
+      <h3 style="margin-bottom:0.75rem">Items</h3>
+      {% for item in order.items %}
+      <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border)">
+        <span>{{ item.quantity }}× {{ item.item_name }}{% if item.variant_name %} ({{ item.variant_name }}){% endif %}</span>
+        <span>Rs. {{ '%.2f'|format(item.line_total_paisa / 100) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>document.body.dataset.trackingToken = "{{ order.tracking_token }}";</script>
+<script src="{{ url_for('static', filename='js/track.js') }}"></script>
+<script>
+(function(){
+  var btn = document.getElementById('cancel-order-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async function(){
+    if (!confirm('Cancel this order?')) return;
+    btn.disabled = true;
+    try {
+      var res = await fetch('/orders/cancel/' + document.body.dataset.trackingToken, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({reason: 'Cancelled by customer'})
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      location.reload();
+    } catch(e) {
+      alert(e.message);
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if member else 'Add' }} Team Member{% endblock %}
+{% block page_title %}{{ 'Edit' if member else 'Add' }} Person{% endblock %}
+{% block content %}
+<form method="post" class="panel" style="max-width:560px" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-group">
+    <label>Full name *</label>
+    <input type="text" name="full_name" value="{{ member.full_name if member else '' }}" required>
+  </div>
+  <div class="form-group">
+    <label>Role / title *</label>
+    <input type="text" name="role_title" value="{{ member.role_title if member else '' }}" placeholder="Owner, Manager, Head Chef…" required>
+  </div>
+  <div class="form-group">
+    <label>Short bio</label>
+    <textarea name="bio" rows="3">{{ member.bio if member and member.bio else '' }}</textarea>
+  </div>
+  <div class="form-group">
+    <label>Photo</label>
+    <input type="file" name="photo_file" accept="image/*">
+    <p style="font-size:0.85rem;color:#6B5344;margin-top:0.35rem">Select photo then Save.</p>
+    <input type="hidden" name="photo_url" value="{{ member.photo_url if member and member.photo_url else '' }}">
+    {% if member and member.photo_url %}
+    <img src="{{ member.photo_url }}" alt="" style="max-width:120px;margin-top:0.5rem;border-radius:50%">
+    {% endif %}
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="phone" value="{{ member.phone if member and member.phone else '' }}">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="{{ member.email if member and member.email else '' }}">
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Display order</label>
+    <input type="number" name="display_order" value="{{ member.display_order if member else 0 }}">
+  </div>
+  <div class="form-group">
+    <label><input type="checkbox" name="is_visible" value="1" {{ 'checked' if not member or member.is_visible else '' }}> Show on website</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('admin.team_list') }}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

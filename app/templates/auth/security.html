@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}Security / 2FA{% endblock %}
+{% block page_title %}Security – Two-factor authentication{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:560px">
+  <p style="margin-bottom:1rem">Protect your admin account with an authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.).</p>
+
+  {% if totp_enabled %}
+  <div class="alert alert-success">2FA is <strong>enabled</strong> for {{ user.email }}.</div>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="disable">
+    <div class="form-group">
+      <label>Enter current code to disable 2FA</label>
+      <input type="text" name="code" inputmode="numeric" maxlength="6" required>
+    </div>
+    <button type="submit" class="btn btn-outline">Disable 2FA</button>
+  </form>
+  {% else %}
+  <div class="alert alert-info">2FA is currently <strong>off</strong>.</div>
+  {% if not setup_secret %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="start">
+    <button type="submit" class="btn btn-primary">Set up 2FA</button>
+  </form>
+  {% else %}
+  <p style="margin-bottom:0.75rem">1. Scan this QR with your authenticator app:</p>
+  <img src="{{ url_for('auth.security_qr') }}" alt="2FA QR" style="max-width:220px;border:1px solid #e7e0d5;border-radius:8px;background:#fff;padding:0.5rem">
+  <p style="margin:0.75rem 0;font-size:0.85rem;color:#78716C">Or enter secret manually: <code>{{ setup_secret }}</code></p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="confirm">
+    <div class="form-group">
+      <label>2. Enter the 6-digit code to confirm</label>
+      <input type="text" name="code" inputmode="numeric" maxlength="6" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Enable 2FA</button>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

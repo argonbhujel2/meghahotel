@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+{% block title %}Tables{% endblock %}
+{% block page_title %}Tables & QR Codes{% endblock %}
+{% block content %}
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;align-items:center">
+  <a href="{{ url_for('admin.table_edit') }}" class="btn btn-primary btn-sm">+ Add Table</a>
+  <a href="{{ url_for('admin.tables_print_all_qr') }}" class="btn btn-outline btn-sm" style="background:#C4A35A;color:#1C1917;border-color:#C4A35A">
+    🖨 Print all table QRs
+  </a>
+</div>
+<table class="admin-table">
+  <thead><tr><th>#</th><th>Name</th><th>Capacity</th><th>Area</th><th>Active</th><th>QR</th><th></th></tr></thead>
+  <tbody>
+    {% for t in tables %}
+    <tr>
+      <td>{{ t.table_number }}</td>
+      <td>{{ t.name or '—' }}</td>
+      <td>{{ t.capacity }}</td>
+      <td>{{ t.seating_area or '—' }}</td>
+      <td>{{ 'Yes' if t.is_active else 'No' }}</td>
+      <td><a href="{{ url_for('admin.table_qr', table_id=t.id) }}">View QR</a></td>
+      <td><a href="{{ url_for('admin.table_edit', table_id=t.id) }}">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="text-align:center;color:#78716C">No tables yet. Add your first table.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

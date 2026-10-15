@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+  <a href="{{ url_for('admin.orders_list') }}" class="btn btn-sm {{ 'btn-primary' if not status_filter else 'btn-outline' }}">All</a>
+  {% for s in ['placed','accepted','preparing','ready','served','completed','cancelled'] %}
+  <a href="{{ url_for('admin.orders_list', status=s) }}" class="btn btn-sm {{ 'btn-primary' if status_filter == s else 'btn-outline' }}">{{ s }}</a>
+  {% endfor %}
+</div>
+<table class="admin-table">
+  <thead><tr><th>Order</th><th>Type</th><th>Table</th><th>Status</th><th>Payment</th><th>Total</th><th>Time</th></tr></thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}">{{ o.order_number }}</a></td>
+      <td>{{ o.order_type }}</td>
+      <td>{{ o.table.table_number if o.table else '—' }}</td>
+      <td><span class="status-badge status-{{ o.status }}">{{ o.status }}</span></td>
+      <td>{{ o.payment_status }}</td>
+      <td>{{ format_price(o.total_paisa) }}</td>
+      <td>{{ o.created_at.strftime('%d %b %H:%M') if o.created_at else '' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="text-align:center;color:#6B5344">No orders</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

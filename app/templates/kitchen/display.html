@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kitchen | Megha Hotel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="kitchen-layout">
+  <div class="kitchen-header">
+    <h1>Kitchen Display</h1>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline" style="color:#D4A574;border-color:#D4A574">Admin</a>
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline" style="color:#aaa;border-color:#555">Sign out</a>
+    </div>
+  </div>
+  <div class="kitchen-grid" id="kitchen-grid">
+    {% for o in orders %}
+    <div class="kitchen-card {{ o.status }}" data-id="{{ o.id }}">
+      <h3>{{ o.order_number }}</h3>
+      <div class="meta">
+        {{ o.table.table_number if o.table else 'Takeaway' }} ·
+        {{ o.created_at.strftime('%H:%M') if o.created_at else '' }} ·
+        <span class="status-badge status-{{ o.status }}">{{ o.status }}</span>
+      </div>
+      <ul>
+        {% for i in o.items %}
+        <li>
+          <strong>{{ i.quantity }}× {{ i.item_name }}</strong>
+          {% if i.variant_name %} ({{ i.variant_name }}){% endif %}
+          {% if i.addons %} – {% for a in i.addons %}{{ a.addon_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+          {% if i.special_instructions %}<br><em>{{ i.special_instructions }}</em>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% if o.special_instructions %}<p><em>{{ o.special_instructions }}</em></p>{% endif %}
+      <div class="kitchen-actions">
+        {% if o.status == 'placed' %}
+        <button class="btn btn-sm btn-primary" onclick="setStatus({{ o.id }}, 'accepted')">Accept</button>
+        <button class="btn btn-sm btn-accent" onclick="setStatus({{ o.id }}, 'preparing')">Start preparing</button>
+        {% elif o.status == 'accepted' %}
+        <button class="btn btn-sm btn-accent" onclick="setStatus({{ o.id }}, 'preparing')">Start preparing</button>
+        {% elif o.status == 'preparing' %}
+        <button class="btn btn-sm btn-primary" onclick="setStatus({{ o.id }}, 'ready')">Mark ready</button>
+        {% elif o.status == 'ready' %}
+        <p style="color:#D4A574;margin:0">Waiting for serve</p>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <p style="color:#888">No active orders</p>
+    {% endfor %}
+  </div>
+  <script>
+    async function setStatus(id, status) {
+      try {
+        const res = await fetch('/kitchen/orders/' + id + '/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: status })
+        });
+        const d = await res.json().catch(function(){ return {}; });
+        if (!res.ok) {
+          alert(d.error || ('Failed (' + res.status + ')'));
+          return;
+        }
+        location.reload();
+      } catch (e) {
+        alert('Network error: ' + e.message);
+      }
+    }
+    setInterval(function(){ location.reload(); }, 20000);
+  </script>
+</body>
+</html>

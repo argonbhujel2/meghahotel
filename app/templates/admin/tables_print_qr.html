@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Print all table QR codes – Megha Hotel</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: #f5f0e8;
+      color: #2C1810;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #8B4513;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .toolbar h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .toolbar .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .toolbar button, .toolbar a {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: system-ui, sans-serif;
+    }
+    .btn-print { background: #C4A35A; color: #1C1917; }
+    .btn-back { background: rgba(255,255,255,.15); color: #fff; }
+    .hint {
+      max-width: 960px;
+      margin: 1rem auto;
+      padding: 0 1rem;
+      font-size: 0.9rem;
+      color: #6B5344;
+      font-family: system-ui, sans-serif;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      padding: 0 1rem 2rem;
+    }
+    .card {
+      background: #FFF8F0;
+      border: 2px solid #8B4513;
+      border-radius: 12px;
+      padding: 1rem 1rem 1.15rem;
+      text-align: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .card img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      display: block;
+      margin: 0.5rem auto;
+      background: #fff;
+      border-radius: 8px;
+    }
+    .card .table-num {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #8B4513;
+      margin: 0;
+    }
+    .card .table-name {
+      font-size: 0.9rem;
+      color: #6B5344;
+      margin: 0.2rem 0 0;
+    }
+    .card .scan {
+      font-size: 0.8rem;
+      color: #8B4513;
+      margin-top: 0.35rem;
+      font-family: system-ui, sans-serif;
+    }
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #6B5344;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .toolbar, .hint, .no-print { display: none !important; }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75cm;
+        max-width: none;
+        margin: 0;
+        padding: 0.5cm;
+      }
+      .card {
+        border: 2px solid #8B4513;
+        border-radius: 8px;
+        padding: 0.4cm;
+        box-shadow: none;
+      }
+      .card img {
+        width: 5.5cm;
+        height: 5.5cm;
+      }
+      @page {
+        size: A4;
+        margin: 1cm;
+      }
+    }
+
+    /* 3-per-row option when many tables */
+    @media print and (min-width: 0) {
+      .grid.cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .grid.cols-3 .card img {
+        width: 4.2cm;
+        height: 4.2cm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <h1>🖨 Print all table QR codes ({{ items|length }})</h1>
+    <div class="actions">
+      <button type="button" class="btn-print" onclick="window.print()">Print now</button>
+      <a href="{{ url_for('admin.tables_list') }}" class="btn-back">← Back to tables</a>
+    </div>
+  </div>
+
+  <p class="hint no-print">
+    Use <strong>Print now</strong> or Ctrl/Cmd+P. Choose A4 paper, enable background graphics if your browser asks.
+    Cut cards and place one QR on each table. Layout: 2 per row (or switch to 3 below).
+  </p>
+  <p class="hint no-print">
+    <label style="cursor:pointer">
+      <input type="checkbox" id="cols3" onchange="document.getElementById('qr-grid').classList.toggle('cols-3', this.checked)">
+      Print 3 QR codes per row (smaller)
+    </label>
+  </p>
+
+  {% if items %}
+  <div class="grid" id="qr-grid">
+    {% for item in items %}
+    <div class="card">
+      <p class="table-num">Table {{ item.table.table_number }}</p>
+      {% if item.table.name and item.table.name != ('Table ' ~ item.table.table_number) %}
+      <p class="table-name">{{ item.table.name }}</p>
+      {% endif %}
+      <img
+        src="{{ url_for('admin.table_qr_png', table_id=item.table.id) }}"
+        alt="QR Table {{ item.table.table_number }}"
+        loading="lazy"
+      >
+      <p class="scan">Scan to order · Megha Hotel</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty">No active tables. Add tables first, then print QR codes.</p>
+  {% endif %}
+</body>
+</html>

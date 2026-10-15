@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports (last {{ days }} days){% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem">
+  <a href="?days=7" class="btn btn-sm {{ 'btn-primary' if days == 7 else 'btn-outline' }}">7 days</a>
+  <a href="?days=30" class="btn btn-sm {{ 'btn-primary' if days == 30 else 'btn-outline' }}">30 days</a>
+  <a href="?days=90" class="btn btn-sm {{ 'btn-primary' if days == 90 else 'btn-outline' }}">90 days</a>
+  <a href="{{ url_for('reports.export_orders_csv', days=days) }}" class="btn btn-sm btn-outline">Export CSV</a>
+</div>
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Net Sales</div><div class="value">{{ format_price(sales) }}</div></div>
+  <div class="stat-card"><div class="label">Orders</div><div class="value">{{ order_count }}</div></div>
+  <div class="stat-card"><div class="label">Cancelled/Rejected</div><div class="value">{{ cancelled }}</div></div>
+  <div class="stat-card"><div class="label">Reservations</div><div class="value">{{ res_count }}</div></div>
+  <div class="stat-card"><div class="label">Confirmed Reservations</div><div class="value">{{ res_confirmed }}</div></div>
+</div>
+<div class="panel">
+  <h2>Top Dishes</h2>
+  <table class="admin-table">
+    <thead><tr><th>Dish</th><th>Qty</th><th>Revenue</th></tr></thead>
+    <tbody>
+      {% for name, qty, rev in top_items %}
+      <tr><td>{{ name }}</td><td>{{ qty }}</td><td>{{ format_price(rev) }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" style="text-align:center;color:#6B5344">No data</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "public/base.html" %}
+{% block title %}Book a Table | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:520px">
+    <div class="section-header"><h2>Book a Table</h2><p>Reserve your spot at Megha Hotel</p></div>
+
+    {% if settings and not settings.reservation_enabled %}
+    <div class="alert alert-warning">Online reservations are currently closed. Please call us.</div>
+    {% else %}
+    <form method="post" class="panel" style="background:var(--surface);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow)">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label for="customer_name">Name *</label>
+        <input type="text" id="customer_name" name="customer_name" required>
+      </div>
+      <div class="form-group">
+        <label for="customer_phone">Phone *</label>
+        <input type="tel" id="customer_phone" name="customer_phone" required placeholder="98XXXXXXXX">
+      </div>
+      <div class="form-group">
+        <label for="customer_email">Email *</label>
+        <input type="email" id="customer_email" name="customer_email" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reservation_date">Date *</label>
+          <input type="date" id="reservation_date" name="reservation_date" required>
+        </div>
+        <div class="form-group">
+          <label for="reservation_time">Time *</label>
+          <input type="time" id="reservation_time" name="reservation_time" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="guest_count">Guests *</label>
+          <input type="number" id="guest_count" name="guest_count" min="1" max="20" value="2" required>
+        </div>
+        <div class="form-group">
+          <label for="seating_area">Seating preference</label>
+          <select id="seating_area" name="seating_area">
+            <option value="">Any</option>
+            <option value="Indoor">Indoor</option>
+            <option value="Outdoor">Outdoor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="special_requests">Special requests</label>
+        <textarea id="special_requests" name="special_requests" rows="2"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Request Reservation</button>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.75rem;text-align:center">Your booking will be pending until confirmed by the restaurant.</p>
+    </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

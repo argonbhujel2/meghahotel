@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit' if table else 'New' }} Table{% endblock %}
+{% block page_title %}{{ 'Edit' if table else 'New' }} Table{% endblock %}
+{% block content %}
+<form method="post" class="panel" style="max-width:480px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-group"><label>Table number</label><input type="text" name="table_number" value="{{ table.table_number if table else '' }}" required></div>
+  <div class="form-group"><label>Name</label><input type="text" name="name" value="{{ table.name if table and table.name else '' }}"></div>
+  <div class="form-group"><label>Capacity</label><input type="number" name="capacity" value="{{ table.capacity if table else 4 }}" min="1"></div>
+  <div class="form-group"><label>Seating area</label>
+    <select name="seating_area">
+      <option value="">—</option>
+      <option value="Indoor" {{ 'selected' if table and table.seating_area == 'Indoor' else '' }}>Indoor</option>
+      <option value="Outdoor" {{ 'selected' if table and table.seating_area == 'Outdoor' else '' }}>Outdoor</option>
+    </select>
+  </div>
+  <div class="form-group"><label><input type="checkbox" name="is_active" value="1" {{ 'checked' if not table or table.is_active else '' }}> Active</label></div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('admin.tables_list') }}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

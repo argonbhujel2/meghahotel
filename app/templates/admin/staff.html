@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+{% block title %}Staff{% endblock %}
+{% block page_title %}Staff Accounts{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.staff_new') }}" class="btn btn-primary btn-sm" style="margin-bottom:1rem">+ Add Staff</a>
+<table class="admin-table">
+  <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Active</th></tr></thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.full_name }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.role_names | join(', ') }}</td>
+      <td>{{ 'Yes' if u.is_active else 'No' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

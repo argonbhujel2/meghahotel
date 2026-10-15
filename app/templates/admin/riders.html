@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% block title %}Riders{% endblock %}
+{% block page_title %}Delivery Riders{% endblock %}
+{% block content %}
+<p style="margin-bottom:1rem">
+  <a href="{{ url_for('admin.rider_edit') }}" class="btn btn-primary">Add rider</a>
+  <a href="/riders" class="btn btn-outline" target="_blank">Public /riders</a>
+  <a href="/rider/login" class="btn btn-outline" target="_blank">Rider login</a>
+</p>
+<table class="admin-table">
+  <thead>
+    <tr><th></th><th>Name</th><th>Username</th><th>Phone</th><th>Vehicle</th><th>Available</th><th>Active</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in riders %}
+    <tr>
+      <td>{% if r.photo_url %}<img src="{{ r.photo_url }}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">{% else %}—{% endif %}</td>
+      <td>{{ r.full_name }}</td>
+      <td><code>{{ r.username or '—' }}</code></td>
+      <td>{{ r.phone }}</td>
+      <td>{{ r.vehicle_type or '—' }} {% if r.vehicle_number %}· {{ r.vehicle_number }}{% endif %}</td>
+      <td>{{ 'Yes' if r.is_available else 'No' }}</td>
+      <td>{{ 'Yes' if r.is_active else 'No' }}</td>
+      <td><a href="{{ url_for('admin.rider_edit', rider_id=r.id) }}">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No riders yet. Add delivery staff here.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

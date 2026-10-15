@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="{{ restaurant.primary_color if restaurant and restaurant.primary_color else '#7B2D26' }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="{{ restaurant.name if restaurant else 'Megha Hotel' }}">
+  <link rel="manifest" href="{{ url_for('public.web_manifest') }}">
+  <link rel="icon" href="{{ restaurant_favicon }}">
+  <link rel="apple-touch-icon" href="/pwa-icon/192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icon/192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/pwa-icon/512.png">
+  <title>{% block title %}{{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ restaurant.seo_description if restaurant else 'Megha Hotel Restaurant, Urlabari, Morang – Good Food. Great Moments.' }}{% endblock %}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% set pc = restaurant.primary_color if restaurant else None %}
+  {% set ac = restaurant.accent_color if restaurant else None %}
+  {% set bg = restaurant.background_color if restaurant else None %}
+  {% if pc in ['#8B4513', '#6B3410', None, ''] %}{% set pc = '#7B2D26' %}{% endif %}
+  {% if ac in ['#D4A574', '#E8C9A0', None, ''] %}{% set ac = '#C4A35A' %}{% endif %}
+  {% if bg in ['#FFF8F0', '#FFF1E0', None, ''] %}{% set bg = '#FAF7F2' %}{% endif %}
+  <style>
+    :root {
+      --primary: {{ pc or '#7B2D26' }};
+      --primary-dark: #5C1F1A;
+      --accent: {{ ac or '#C4A35A' }};
+      --bg: {{ bg or '#FAF7F2' }};
+      --surface: #FFFFFF;
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="{{ url_for('public.index') }}" class="nav-brand">
+        <img src="{{ restaurant_logo }}" alt="{{ restaurant.name }}" class="nav-logo">
+        <span>{{ restaurant.name if restaurant else 'Megha Hotel' }}</span>
+      </a>
+      <button class="nav-toggle" aria-label="Menu" type="button"><span></span><span></span><span></span></button>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('public.index') }}">Home</a></li>
+        <li><a href="{{ url_for('public.menu') }}">Menu</a></li>
+        <li><a href="{{ url_for('public.cart') }}">Order <span data-cart-count class="badge" style="display:none">0</span></a></li>
+        <li><a href="{{ url_for('public.book_table') }}">Book Table</a></li>
+        <li><a href="{{ url_for('public.track_lookup') }}">Track</a></li>
+        <li><a href="{{ url_for('public.riders_page') }}">Delivery team</a></li>
+        <li><a href="{{ url_for('public.contact') }}">Contact</a></li>
+      </ul>
+      <div class="np-clock" id="np-clock" title="Nepal time (Bikram Sambat)">
+        <span class="np-clock-bs" id="np-clock-bs">—</span>
+        <span class="np-clock-time" id="np-clock-time">—:—:—</span>
+      </div>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="container" style="padding-top:1rem">
+    {% for cat, msg in messages %}
+    <div class="alert alert-{{ cat if cat in ['error','success','info'] else 'info' }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4>{{ restaurant.name if restaurant else 'Megha Hotel' }}</h4>
+          <p>{{ restaurant.tagline if restaurant and restaurant.tagline else 'Good Food. Great Moments.' }}</p>
+          {% if restaurant and restaurant.address %}<p style="margin-top:0.5rem">{{ restaurant.address }}</p>{% endif %}
+        </div>
+        <div>
+          <h4>Hours</h4>
+          {% if restaurant and restaurant.opening_hours %}
+          <p><a href="{{ url_for('public.contact') }}">View opening hours</a></p>
+          {% else %}
+          <p><a href="{{ url_for('public.contact') }}">Contact page</a></p>
+          {% endif %}
+        </div>
+        <div>
+          <h4>Contact</h4>
+          {% if restaurant and restaurant.phone %}<p>Phone: <a href="tel:{{ restaurant.phone }}">{{ restaurant.phone }}</a></p>{% endif %}
+          {% if restaurant and restaurant.whatsapp %}<p>WhatsApp: {{ restaurant.whatsapp }}</p>{% endif %}
+          {% if restaurant and restaurant.email %}<p><a href="mailto:{{ restaurant.email }}">{{ restaurant.email }}</a></p>{% endif %}
+        </div>
+      </div>
+      <div class="footer-clock" id="footer-clock">
+        <span class="np-clock-bs" id="footer-np-bs">—</span>
+        <span class="np-clock-time" id="footer-np-time">—:—:—</span>
+      </div>
+      <div class="footer-download">
+        <h4>Download App</h4>
+        {% set play_url = restaurant.play_store_url if restaurant and restaurant.play_store_url else none %}
+        {% if play_url %}
+        <a href="{{ play_url }}" target="_blank" rel="noopener" class="play-badge-link" title="Get it on Google Play">
+          <img src="{{ url_for('static', filename='images/google-play-badge-light.svg') }}" alt="Get it on Google Play" class="play-badge" width="162" height="48">
+        </a>
+        {% else %}
+        <span class="play-badge-link is-disabled" title="Play Store link coming soon">
+          <img src="{{ url_for('static', filename='images/google-play-badge-light.svg') }}" alt="Get it on Google Play" class="play-badge" width="162" height="48">
+        </span>
+        {% endif %}
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; {{ restaurant.name if restaurant else 'Megha Hotel' }}. All rights reserved.</p>
+        <p style="margin-top:0.4rem">
+          Technology by <a href="https://bamstudio.argan.com.np" target="_blank" rel="noopener">BAM Studio</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile bottom navigation -->
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="{{ url_for('public.index') }}" class="{% if request.endpoint == 'public.index' %}active{% endif %}">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
+      Home
+    </a>
+    <a href="{{ url_for('public.menu') }}" class="{% if request.endpoint == 'public.menu' %}active{% endif %}">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4V4zm0 5h16v2H4V9zm0 5h10v2H4v-2zm0 5h8v2H4v-2z"/></svg>
+      Menu
+    </a>
+    <a href="{{ url_for('public.cart') }}" class="{% if request.endpoint == 'public.cart' %}active{% endif %}" style="position:relative">
+      <svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M6 6 5 3H2"/></svg>
+      Order
+      <span data-cart-count class="bn-badge">0</span>
+    </a>
+    <a href="{{ url_for('public.book_table') }}" class="{% if request.endpoint == 'public.book_table' %}active{% endif %}">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      Book
+    </a>
+    <a href="{{ url_for('public.track_lookup') }}" class="{% if request.endpoint and 'track' in request.endpoint %}active{% endif %}">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Track
+    </a>
+  </nav>
+
+  <div class="pwa-banner" id="pwa-banner" role="status" aria-live="polite">
+    <div class="pwa-banner-text">
+      <strong>Megha Hotel app</strong>
+      <span>Play Store app coming soon. For now, install this PWA for an app-like experience.</span>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" id="pwa-install">Install</button>
+    <button type="button" class="pwa-close" id="pwa-close" aria-label="Close">&times;</button>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    (function(){
+      function tick(data) {
+        var bs = document.getElementById('np-clock-bs');
+        var tm = document.getElementById('np-clock-time');
+        var fbs = document.getElementById('footer-np-bs');
+        var ftm = document.getElementById('footer-np-time');
+        if (!bs && !fbs) return;
+        if (data) {
+          if (bs) bs.textContent = data.bs + ' BS';
+          if (fbs) fbs.textContent = data.bs + ' BS · ' + (data.bs_long || '');
+          window.__npOffset = new Date(data.iso + (data.iso.indexOf('+')>=0||data.iso.endsWith('Z')?'':'')) - Date.now();
+          // simpler: use server time string and local increment
+          window.__npTimeParts = data.time.split(':').map(Number);
+          window.__npBs = data.bs;
+        }
+        if (window.__npTimeParts) {
+          var p = window.__npTimeParts;
+          p[2] = (p[2] || 0) + 1;
+          if (p[2] >= 60) { p[2]=0; p[1]++; }
+          if (p[1] >= 60) { p[1]=0; p[0]++; }
+          if (p[0] >= 24) { p[0]=0; }
+          function z(n){ return (n<10?'0':'')+n; }
+          var ts = z(p[0])+':'+z(p[1])+':'+z(p[2]);
+          if (tm) tm.textContent = ts;
+          if (ftm) ftm.textContent = ts;
+          if (window.__npBs) { if (bs) bs.textContent = window.__npBs + ' BS'; }
+        }
+      }
+      function sync() {
+        fetch('/api/time').then(function(r){ return r.json(); }).then(function(d){
+          tick(d);
+        }).catch(function(){});
+      }
+      sync();
+      setInterval(function(){ tick(null); }, 1000);
+      setInterval(sync, 60000);
+    })();
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/static/sw.js').catch(function () {});
+      });
+    }
+    (function () {
+      var deferred = null;
+      var banner = document.getElementById('pwa-banner');
+      var installBtn = document.getElementById('pwa-install');
+      var closeBtn = document.getElementById('pwa-close');
+      var hideTimer = null;
+
+      function showBanner() {
+        if (!banner) return;
+        // Don't show if already installed as standalone
+        var standalone = window.matchMedia('(display-mode: standalone)').matches
+          || window.navigator.standalone === true;
+        if (standalone) return;
+        banner.classList.add('show');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () {
+          banner.classList.remove('show');
+        }, 10000);
+      }
+
+      function hideBanner() {
+        if (banner) banner.classList.remove('show');
+        clearTimeout(hideTimer);
+      }
+
+      // Show on every open / refresh for 10 seconds
+      if (document.readyState === 'complete') showBanner();
+      else window.addEventListener('load', showBanner);
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferred = e;
+      });
+
+      if (installBtn) installBtn.addEventListener('click', function () {
+        if (deferred) {
+          deferred.prompt();
+          deferred.userChoice.then(function () {
+            deferred = null;
+            hideBanner();
+          });
+        } else {
+          // Fallback tips when browser has no install prompt
+          var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          if (isIOS) {
+            alert('To install: tap Share, then “Add to Home Screen”.');
+          } else {
+            alert('To install: open browser menu (⋮) and choose “Install app” or “Add to Home screen”.');
+          }
+        }
+      });
+      if (closeBtn) closeBtn.addEventListener('click', hideBanner);
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+{% block title %}Manual Order{% endblock %}
+{% block page_title %}Create Manual Order{% endblock %}
+{% block content %}
+<form method="post" class="panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-row">
+    <div class="form-group">
+      <label>Order type</label>
+      <select name="order_type" id="order_type">
+        <option value="dine_in">Dine-in</option>
+        <option value="takeaway">Takeaway</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Table</label>
+      <select name="table_id">
+        <option value="">— Select —</option>
+        {% for t in tables %}
+        <option value="{{ t.id }}">{{ t.table_number }}{% if t.name %} ({{ t.name }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Customer name</label>
+      <input type="text" name="customer_name">
+    </div>
+    <div class="form-group">
+      <label>Email *</label>
+      <input type="email" name="customer_email" required>
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="customer_phone">
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Special instructions</label>
+    <textarea name="special_instructions" rows="2"></textarea>
+  </div>
+  <h3 style="margin:1rem 0 0.75rem">Dishes</h3>
+  <table class="admin-table">
+    <thead><tr><th>Dish</th><th>Price</th><th>Qty</th></tr></thead>
+    <tbody>
+      {% for i in items %}
+      <tr>
+        <td>{{ i.name }}</td>
+        <td>{{ format_price(i.effective_price_paisa) }}</td>
+        <td><input type="number" name="qty_{{ i.id }}" min="0" value="0" style="width:70px"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="submit" class="btn btn-primary" style="margin-top:1rem">Create Order</button>
+  <a href="{{ url_for('admin.orders_list') }}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

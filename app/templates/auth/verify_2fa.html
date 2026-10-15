@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2FA | Megha Hotel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+  <div class="login-layout">
+    <div class="login-form-side">
+      <div class="login-box">
+        <h1>Two-factor authentication</h1>
+        <p style="color:#78716C;margin-bottom:1rem">Enter the 6-digit code from your authenticator app.</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+        {% endwith %}
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-group">
+            <label for="code">Authentication code</label>
+            <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Verify</button>
+        </form>
+        <p style="margin-top:1rem"><a href="{{ url_for('auth.login') }}">Back to login</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

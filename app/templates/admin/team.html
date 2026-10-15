@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+{% block title %}Team{% endblock %}
+{% block page_title %}People Behind the Hotel{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.team_edit') }}" class="btn btn-primary btn-sm" style="margin-bottom:1rem">+ Add Person</a>
+<table class="admin-table">
+  <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Visible</th><th>Order</th><th></th></tr></thead>
+  <tbody>
+    {% for m in members %}
+    <tr>
+      <td>{{ m.full_name }}</td>
+      <td>{{ m.role_title }}</td>
+      <td>{{ m.phone or '—' }}</td>
+      <td>{{ 'Yes' if m.is_visible else 'No' }}</td>
+      <td>{{ m.display_order }}</td>
+      <td>
+        <a href="{{ url_for('admin.team_edit', member_id=m.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('admin.team_delete', member_id=m.id) }}" style="display:inline" onsubmit="return confirm('Remove this person?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm" style="color:#9B2226">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" style="text-align:center;color:#6B5344">No team members yet. Add owners and staff to show on the website.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

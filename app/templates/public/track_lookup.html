@@ -1,0 +1,31 @@
+{% extends "public/base.html" %}
+{% block title %}Track Order | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:440px">
+    <div class="section-header">
+      <h2>Track Your Order</h2>
+      <p>Enter your order number and the email or phone used when ordering</p>
+    </div>
+
+    <form method="post" class="panel" style="background:var(--white);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow)">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label for="order_number">Order number *</label>
+        <input type="text" id="order_number" name="order_number" required placeholder="e.g. MH-20261015-A1B2" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@email.com">
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" placeholder="98XXXXXXXX">
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">Provide either email or phone (must match the order).</p>
+      <button type="submit" class="btn btn-primary btn-block">Track Order</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

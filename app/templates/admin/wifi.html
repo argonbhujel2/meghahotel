@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+{% block title %}Wi-Fi QR{% endblock %}
+{% block page_title %}Wi-Fi QR Code{% endblock %}
+{% block content %}
+<form method="post" class="panel" style="max-width:480px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-group"><label>SSID</label><input type="text" name="ssid" value="{{ wifi.ssid if wifi else '' }}" required></div>
+  <div class="form-group"><label>Password</label><input type="text" name="password" value="{{ wifi.password if wifi else '' }}"></div>
+  <div class="form-group"><label>Security</label>
+    <select name="security_type">
+      <option value="WPA" {{ 'selected' if not wifi or wifi.security_type == 'WPA' else '' }}>WPA/WPA2</option>
+      <option value="WEP" {{ 'selected' if wifi and wifi.security_type == 'WEP' else '' }}>WEP</option>
+      <option value="nopass" {{ 'selected' if wifi and wifi.security_type == 'nopass' else '' }}>None</option>
+    </select>
+  </div>
+  <div class="form-group"><label><input type="checkbox" name="is_hidden" value="1" {{ 'checked' if wifi and wifi.is_hidden else '' }}> Hidden network</label></div>
+  <div class="form-group"><label>Instructions</label><textarea name="instructions" rows="2">{{ wifi.instructions if wifi and wifi.instructions else '' }}</textarea></div>
+  <div class="form-group"><label><input type="checkbox" name="is_active" value="1" {{ 'checked' if not wifi or wifi.is_active else '' }}> Active</label></div>
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% if wifi and wifi.ssid %}
+<div class="panel" style="max-width:320px;text-align:center;margin-top:1.5rem">
+  <p>Connect to Megha Hotel Wi-Fi by scanning this QR code</p>
+  <img src="{{ url_for('admin.wifi_qr_png') }}" alt="Wi-Fi QR" style="width:200px;height:200px;margin:1rem auto">
+  <a href="{{ url_for('admin.wifi_qr_png') }}" class="btn btn-outline btn-sm" download>Download PNG</a>
+</div>
+{% endif %}
+{% endblock %}

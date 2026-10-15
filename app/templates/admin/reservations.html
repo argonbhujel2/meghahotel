@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}Reservations{% endblock %}
+{% block page_title %}Reservations{% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+  <a href="{{ url_for('admin.reservations_list') }}" class="btn btn-sm {{ 'btn-primary' if not status_filter else 'btn-outline' }}">All</a>
+  {% for s in ['pending','confirmed','rejected','cancelled','completed','no_show'] %}
+  <a href="{{ url_for('admin.reservations_list', status=s) }}" class="btn btn-sm {{ 'btn-primary' if status_filter == s else 'btn-outline' }}">{{ s }}</a>
+  {% endfor %}
+</div>
+<table class="admin-table">
+  <thead><tr><th>Ref</th><th>Name</th><th>Phone</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody>
+    {% for r in reservations %}
+    <tr>
+      <td>{{ r.booking_reference }}</td>
+      <td>{{ r.customer_name }}</td>
+      <td>{{ r.customer_phone }}</td>
+      <td>{{ r.reservation_date.strftime('%d %b %Y') }}</td>
+      <td>{{ r.reservation_time.strftime('%H:%M') }}</td>
+      <td>{{ r.guest_count }}</td>
+      <td><span class="status-badge status-{{ r.status }}">{{ r.status }}</span></td>
+      <td>
+        {% if r.status == 'pending' %}
+        <form method="post" action="{{ url_for('admin.reservation_status', res_id=r.id) }}" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="confirmed">
+          <button type="submit" class="btn btn-sm btn-primary">Confirm</button>
+        </form>
+        <form method="post" action="{{ url_for('admin.reservation_status', res_id=r.id) }}" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="rejected">
+          <button type="submit" class="btn btn-sm btn-outline">Reject</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" style="text-align:center;color:#6B5344">No reservations</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#7B2D26">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/static/rider-manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <title>Order {{ order.order_number }} | Rider</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <style>
+    body { background:#FAF7F2; padding:1rem; padding-bottom:2rem; }
+    .box { max-width:480px; margin:0 auto; }
+    .card { background:#fff; border-radius:12px; padding:1.15rem; border:1px solid #E7E0D5; margin-bottom:1rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <p><a href="{{ url_for('rider.dashboard') }}">← Back</a></p>
+    <div class="card">
+      <h2 style="color:#7B2D26">{{ order.order_number }}</h2>
+      <p>Delivery: <strong>{{ order.delivery_status or 'pending_pickup' }}</strong></p>
+      <p>Order: {{ order.status }} · Rs. {{ '%.2f'|format(order.total_paisa/100) }}</p>
+      {% if order.delivery_address %}<p style="margin-top:0.5rem"><strong>Address:</strong> {{ order.delivery_address }}</p>{% endif %}
+      {% if order.customer_name %}<p><strong>Customer:</strong> {{ order.customer_name }}</p>{% endif %}
+      {% if order.customer_phone %}<p><a class="btn btn-outline btn-sm" href="tel:{{ order.customer_phone }}">Call {{ order.customer_phone }}</a></p>{% endif %}
+      {% if order.customer_lat and order.customer_lng %}
+      <p style="margin-top:0.5rem">
+        <a class="btn btn-outline btn-sm" target="_blank" rel="noopener"
+           href="https://www.openstreetmap.org/?mlat={{ order.customer_lat }}&mlon={{ order.customer_lng }}#map=16/{{ order.customer_lat }}/{{ order.customer_lng }}">
+          Open customer on map
+        </a>
+      </p>
+      {% endif %}
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.5rem">Items</h3>
+      {% for i in order.items %}
+      <div style="padding:0.35rem 0;border-bottom:1px solid #E7E0D5">{{ i.quantity }}× {{ i.item_name }}</div>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem">Update delivery</h3>
+      <form method="post" action="{{ url_for('rider.order_status', order_id=order.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="display:grid;gap:0.5rem">
+          {% for s, label in [
+            ('picked_up','1. Picked up from restaurant'),
+            ('on_the_way','2. On the way'),
+            ('nearby','3. Nearby / arriving'),
+            ('delivered','4. Delivered')
+          ] %}
+          <button type="submit" name="delivery_status" value="{{ s }}" class="btn btn-primary btn-block"
+            {{ 'disabled' if order.delivery_status == s else '' }}>{{ label }}</button>
+          {% endfor %}
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/rider-sw.js', { scope: '/rider/' }).catch(function(){});
+    }
+  </script>
+</body>
+</html>
