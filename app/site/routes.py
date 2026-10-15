@@ -15,9 +15,25 @@ public_bp = Blueprint("public", __name__)
 
 @public_bp.route("/")
 def index():
-    db = get_session()
-    settings = db.query(RestaurantSettings).first()
     from sqlalchemy.orm import joinedload
+    from flask import current_app
+    try:
+        db = get_session()
+        settings = db.query(RestaurantSettings).first()
+    except Exception as e:
+        # Tables may not exist yet – try one-time init
+        current_app.logger.warning(f"DB not ready, running init_db: {e}")
+        try:
+            from app.models.base import init_db
+            init_db(current_app)
+            db = get_session()
+            settings = db.query(RestaurantSettings).first()
+        except Exception as e2:
+            current_app.logger.error(f"init_db failed: {e2}")
+            return render_template(
+                "errors/500.html",
+                error_hint="Database tables are missing. Check TURSO credentials and redeploy.",
+            ), 500
     featured = (
         db.query(MenuItem)
         .options(joinedload(MenuItem.category))

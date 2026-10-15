@@ -1,14 +1,20 @@
-from functools import lru_cache
 from app.models.base import get_session
 from app.models.settings import RestaurantSettings
 
 
 def get_restaurant_settings() -> RestaurantSettings | None:
-    session = get_session()
+    """Return restaurant settings or None if DB not ready / table missing."""
     try:
-        return session.query(RestaurantSettings).first()
-    finally:
-        session.close()
+        session = get_session()
+        try:
+            return session.query(RestaurantSettings).first()
+        finally:
+            try:
+                session.close()
+            except Exception:
+                pass
+    except Exception:
+        return None
 
 
 def format_price(paisa: int) -> str:

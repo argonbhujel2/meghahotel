@@ -105,7 +105,10 @@ def create_app(config_name=None):
             DEFAULT_FAVICON,
             DEFAULT_TEAM,
         )
-        settings = get_restaurant_settings()
+        try:
+            settings = get_restaurant_settings()
+        except Exception:
+            settings = None
         logo = default_img(settings.logo_url if settings else None, "logo")
         hero = default_img(settings.hero_image_url if settings else None, "hero")
         favicon = default_img(
@@ -155,13 +158,12 @@ def create_app(config_name=None):
         finally:
             session.close()
 
-    # Optional DB init (local only; on Vercel/Turso run flask init-db once)
-    if os.environ.get("USE_LOCAL_DB") == "1" or os.environ.get("INIT_DB_ON_START") == "1":
-        with app.app_context():
-            try:
-                from app.models.base import init_db
-                init_db(app)
-            except Exception as e:
-                app.logger.warning(f"DB init on startup: {e}")
+    # Create tables + seed if missing (safe on every cold start; create_all is idempotent)
+    with app.app_context():
+        try:
+            from app.models.base import init_db
+            init_db(app)
+        except Exception as e:
+            app.logger.warning(f"DB init on startup: {e}")
 
     return app
