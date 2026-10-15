@@ -1,0 +1,157 @@
+{% extends "site/base.html" %}
+{% block title %}{{ settings.seo_title if settings and settings.seo_title else (settings.name if settings else 'Megha Hotel') ~ ' | Restaurant Urlabari' }}{% endblock %}
+
+{% block content %}
+{% if announcement %}
+<div style="background:var(--accent);text-align:center;padding:0.6rem 1rem;font-weight:500">
+  {{ announcement.message }}
+  {% if announcement.link_url %}<a href="{{ announcement.link_url }}" style="margin-left:0.5rem">Learn more →</a>{% endif %}
+</div>
+{% endif %}
+
+<section class="hero" style="background-image:linear-gradient(rgba(44,24,16,0.55),rgba(44,24,16,0.7)),url('{{ restaurant_hero }}');background-size:cover;background-position:center">
+  <div class="container hero-content">
+    <h1>{{ settings.hero_title if settings and settings.hero_title else 'Good Food. Great Moments.' }}</h1>
+    <p>{{ settings.hero_subtitle if settings and settings.hero_subtitle else 'Authentic flavors from the heart of Urlabari, Morang' }}</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('public.menu') }}" class="btn btn-primary">View Menu</a>
+      <a href="{{ url_for('public.cart') }}" class="btn btn-outline">Order Food</a>
+      <a href="{{ url_for('public.book_table') }}" class="btn btn-outline">Book a Table</a>
+    </div>
+  </div>
+</section>
+
+{% if featured %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Featured Dishes</h2>
+      <p>Our most loved plates</p>
+    </div>
+    <div class="card-grid">
+      {% for item in featured %}
+      <article class="card">
+        <img class="card-img" src="{{ dish_img(item) }}" alt="{{ item.name }}" loading="lazy" onerror="this.onerror=null;this.src='{{ DEFAULT_DISH }}'">
+        <div class="card-body">
+          <span class="badge badge-featured">Featured</span>
+          <h3>{{ item.name }}</h3>
+          <p>{{ item.short_description or '' }}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="price">Rs. {{ (item.effective_price_paisa / 100) | int if item.effective_price_paisa % 100 == 0 else '%.2f'|format(item.effective_price_paisa / 100) }}</span>
+            <button class="btn btn-sm btn-primary" data-add-to-cart
+              data-item-id="{{ item.id }}" data-item-name="{{ item.name }}"
+              data-item-price="{{ item.effective_price_paisa }}">Add</button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if categories %}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <h2>Our Menu</h2>
+      <p>Explore by category</p>
+    </div>
+    <div class="card-grid category-grid">
+      {% for cat in categories %}
+      <a href="{{ url_for('public.menu', category=cat.slug) }}" class="category-card">
+        <img src="{{ category_img(cat) }}" alt="{{ cat.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/images/defaults/category.jpg'">
+        <div class="category-card-label">
+          <h3>{{ cat.name }}</h3>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="{{ url_for('public.menu') }}" class="btn btn-primary">Full Menu</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if settings and settings.about_text %}
+<section class="section">
+  <div class="container" style="max-width:720px;text-align:center">
+    <div class="section-header"><h2>Our Story</h2></div>
+    <p style="font-size:1.1rem;color:var(--text-muted)">{{ settings.about_text }}</p>
+  </div>
+</section>
+{% endif %}
+
+{% if testimonials %}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header"><h2>What Guests Say</h2></div>
+    <div class="card-grid">
+      {% for t in testimonials %}
+      <div class="card" style="padding:1.5rem">
+        <div style="color:var(--accent);margin-bottom:0.5rem">{% for i in range(t.rating) %}★{% endfor %}</div>
+        <p style="font-style:italic;margin-bottom:0.75rem">"{{ t.content }}"</p>
+        <strong>— {{ t.customer_name }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+{% if team %}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <h2>People Behind Megha Hotel</h2>
+      <p>The owners and team who welcome you every day</p>
+    </div>
+    <div class="card-grid">
+      {% for m in team %}
+      <article class="card" style="text-align:center;padding:1.5rem">
+        <img src="{{ default_img(m.photo_url, 'team') }}" alt="{{ m.full_name }}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 1rem" onerror="this.onerror=null;this.src='{{ DEFAULT_TEAM }}'">
+        <h3 style="margin-bottom:0.25rem">{{ m.full_name }}</h3>
+        <p style="color:var(--primary);font-weight:600;font-size:0.9rem;margin-bottom:0.5rem">{{ m.role_title }}</p>
+        {% if m.bio %}<p style="color:var(--text-muted);font-size:0.9rem">{{ m.bio }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="container" style="text-align:center;max-width:640px">
+    <h2>Visit Us</h2>
+    <p style="margin:0.75rem 0;color:var(--text-muted)">{{ settings.address if settings and settings.address else 'Urlabari, Morang, Nepal' }}</p>
+    {% if settings and settings.phone %}
+    <p style="margin-bottom:0.35rem"><strong>Phone:</strong> <a href="tel:{{ settings.phone }}">{{ settings.phone }}</a></p>
+    {% endif %}
+    {% if settings and settings.whatsapp %}
+    <p style="margin-bottom:0.35rem"><strong>WhatsApp:</strong> {{ settings.whatsapp }}</p>
+    {% endif %}
+    {% if settings and settings.email %}
+    <p style="margin-bottom:0.75rem"><strong>Email:</strong> <a href="mailto:{{ settings.email }}">{{ settings.email }}</a></p>
+    {% endif %}
+    {% if hours %}
+    <div style="text-align:left;max-width:320px;margin:1rem auto;background:var(--white);padding:1rem 1.25rem;border-radius:var(--radius);box-shadow:var(--shadow)">
+      <strong style="display:block;margin-bottom:0.5rem">Opening Hours</strong>
+      {% set day_labels = {'monday':'Mon','tuesday':'Tue','wednesday':'Wed','thursday':'Thu','friday':'Fri','saturday':'Sat','sunday':'Sun'} %}
+      {% for key, label in day_labels.items() %}
+      {% set d = hours.get(key) %}
+      <div style="display:flex;justify-content:space-between;font-size:0.9rem;padding:0.2rem 0">
+        <span>{{ label }}</span>
+        <span style="color:var(--text-muted)">{% if d and d.open %}{{ d.open }}–{{ d.close }}{% else %}Closed{% endif %}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="hero-actions" style="justify-content:center;margin-top:1rem">
+      <a href="{{ url_for('public.book_table') }}" class="btn btn-primary">Book a Table</a>
+      <a href="{{ url_for('public.contact') }}" class="btn btn-outline">Contact</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "site/base.html" %}
+{% block title %}Reservation {{ reservation.booking_reference }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:480px;text-align:center">
+    <h2>Reservation {{ reservation.booking_reference }}</h2>
+    <p style="margin:1rem 0">
+      Status: <span class="status-badge status-{{ reservation.status }}">{{ reservation.status | capitalize }}</span>
+    </p>
+    <div class="panel" style="background:var(--surface);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);text-align:left">
+      <p><strong>Name:</strong> {{ reservation.customer_name }}</p>
+      <p><strong>Date:</strong> {{ reservation.reservation_date.strftime('%d %b %Y') }}</p>
+      <p><strong>Time:</strong> {{ reservation.reservation_time.strftime('%I:%M %p') }}</p>
+      <p><strong>Guests:</strong> {{ reservation.guest_count }}</p>
+      {% if reservation.seating_area %}<p><strong>Area:</strong> {{ reservation.seating_area }}</p>{% endif %}
+      {% if reservation.special_requests %}<p><strong>Requests:</strong> {{ reservation.special_requests }}</p>{% endif %}
+    </div>
+    {% if reservation.status == 'pending' %}
+    <p style="margin-top:1rem;color:var(--text-muted)">We will confirm your booking shortly. Please keep this page or reference number.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

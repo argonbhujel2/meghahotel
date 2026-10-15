@@ -1,0 +1,57 @@
+{% extends "site/base.html" %}
+{% block title %}Menu | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Our Menu</h2>
+      {% if table_number is defined and table_number or session.get('table_number') %}
+      <p class="badge">Ordering for Table {{ session.get('table_number') or table_number }}</p>
+      {% else %}
+      <p>Fresh dishes prepared with care</p>
+      {% endif %}
+    </div>
+
+    <form class="menu-search" method="get" action="{{ url_for('public.menu') }}">
+      <input type="search" name="q" placeholder="Search dishes…" value="{{ search_q or '' }}">
+      {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+    </form>
+
+    <div class="menu-filters">
+      <a href="{{ url_for('public.menu') }}" class="{{ 'active' if not active_category else '' }}">All</a>
+      {% for cat in categories %}
+      <a href="{{ url_for('public.menu', category=cat.slug) }}" class="{{ 'active' if active_category == cat.slug else '' }}">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+
+    {% if items %}
+    <div>
+      {% for item in items %}
+      <div class="menu-item-row">
+        <img src="{{ dish_img(item) }}" alt="{{ item.name }}" loading="lazy" style="width:90px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.onerror=null;this.src='{{ DEFAULT_DISH }}'">
+        <div class="menu-item-info">
+          <h3 style="font-size:1.1rem">{{ item.name }}
+            {% if item.is_popular %}<span class="badge">Popular</span>{% endif %}
+          </h3>
+          <p>{{ item.short_description or '' }}</p>
+          <span class="price">Rs. {{ (item.effective_price_paisa / 100) | int if item.effective_price_paisa % 100 == 0 else '%.2f'|format(item.effective_price_paisa / 100) }}</span>
+        </div>
+        <div class="menu-item-actions">
+          <button class="btn btn-sm btn-primary" data-add-to-cart
+            data-item-id="{{ item.id }}" data-item-name="{{ item.name }}"
+            data-item-price="{{ item.effective_price_paisa }}">Add to Cart</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><h3>No dishes found</h3><p>Try another category or search.</p></div>
+    {% endif %}
+
+    <div style="text-align:center;margin-top:2rem">
+      <a href="{{ url_for('public.cart') }}" class="btn btn-primary">View Cart (<span data-cart-count>0</span>)</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "site/base.html" %}
+{% block title %}Delivery Team | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:640px">
+    <div class="section-header">
+      <h2>Delivery team</h2>
+      <p>We deliver fresh food across our service area · Share your location when ordering</p>
+    </div>
+    <div class="panel" style="background:var(--surface);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem">
+      <p style="margin-bottom:1rem">Our delivery partners bring your order from Megha Hotel to your door. After you order, you can track progress — the rider appears on the map once they pick up your food.</p>
+      {% if settings and settings.delivery_areas_text %}
+      <p><strong>Areas we cover:</strong> {{ settings.delivery_areas_text }}</p>
+      {% endif %}
+      {% if settings and settings.delivery_radius_km %}
+      <p style="margin-top:0.5rem"><strong>Service radius:</strong> up to {{ settings.delivery_radius_km }} km from the restaurant</p>
+      {% endif %}
+      {% if settings and settings.delivery_fee_paisa is defined and settings.delivery_fee_paisa %}
+      <p style="margin-top:0.5rem"><strong>Delivery fee:</strong> from Rs. {{ '%.0f'|format((settings.delivery_fee_paisa or 0)/100) }} (exact fee shown at checkout by distance)</p>
+      {% endif %}
+    </div>
+    <p style="text-align:center">
+      <a href="{{ url_for('public.menu') }}" class="btn btn-primary">Order for delivery</a>
+      <a href="{{ url_for('public.track_lookup') }}" class="btn btn-outline">Track order</a>
+    </p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "site/base.html" %}
+{% block title %}Contact | {{ restaurant.name if restaurant else 'Megha Hotel' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:720px">
+    <div class="section-header"><h2>Contact Us</h2></div>
+
+    <div class="panel" style="background:var(--white);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem">
+      <p><strong>Address</strong><br>
+        {{ settings.address if settings and settings.address else 'Urlabari, Morang, Nepal' }}
+      </p>
+      {% if settings and settings.phone %}
+      <p style="margin-top:1rem"><strong>Phone</strong><br>
+        <a href="tel:{{ settings.phone }}">{{ settings.phone }}</a>
+      </p>
+      {% endif %}
+      {% if settings and settings.whatsapp %}
+      <p style="margin-top:1rem"><strong>WhatsApp</strong><br>
+        <a href="https://wa.me/{{ settings.whatsapp | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener">{{ settings.whatsapp }}</a>
+      </p>
+      {% endif %}
+      {% if settings and settings.email %}
+      <p style="margin-top:1rem"><strong>Email</strong><br>
+        <a href="mailto:{{ settings.email }}">{{ settings.email }}</a>
+      </p>
+      {% endif %}
+      {% if settings and settings.map_url %}
+      <p style="margin-top:1.5rem">
+        <a href="{{ settings.map_url }}" target="_blank" rel="noopener" class="btn btn-outline">Open in Maps</a>
+      </p>
+      {% endif %}
+    </div>
+
+    {% if hours %}
+    <div class="panel" style="background:var(--white);padding:1.5rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem">
+      <h3 style="margin-bottom:1rem">Opening Hours</h3>
+      <table style="width:100%;border-collapse:collapse">
+        {% set day_labels = {'monday':'Monday','tuesday':'Tuesday','wednesday':'Wednesday','thursday':'Thursday','friday':'Friday','saturday':'Saturday','sunday':'Sunday'} %}
+        {% for key, label in day_labels.items() %}
+        {% set d = hours.get(key) %}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:0.5rem 0;font-weight:600">{{ label }}</td>
+          <td style="padding:0.5rem 0;text-align:right;color:var(--text-muted)">
+            {% if d and d.open and d.close %}
+              {{ d.open }} – {{ d.close }}
+            {% else %}
+              Closed
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% if settings and settings.closing_days %}
+      <p style="margin-top:0.75rem;font-size:0.9rem;color:var(--text-muted)">Weekly closed: {{ settings.closing_days }}</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if team %}
+    <div style="margin-top:1rem">
+      <h3 style="margin-bottom:1rem;text-align:center">People Behind Megha Hotel</h3>
+      <div class="card-grid">
+        {% for m in team %}
+        <div class="card" style="padding:1.25rem;text-align:center">
+          <strong>{{ m.full_name }}</strong>
+          <p style="color:var(--primary);font-size:0.9rem">{{ m.role_title }}</p>
+          {% if m.phone %}<p style="font-size:0.9rem">{{ m.phone }}</p>{% endif %}
+          {% if m.email %}<p style="font-size:0.9rem">{{ m.email }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

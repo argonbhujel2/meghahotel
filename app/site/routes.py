@@ -88,7 +88,7 @@ def index():
         except Exception:
             hours = {}
     return render_template(
-        "public/index.html",
+        "site/index.html",
         settings=settings,
         featured=featured,
         categories=categories,
@@ -123,7 +123,7 @@ def menu():
     items = items_q.options(joinedload(MenuItem.category)).order_by(MenuItem.display_order).all()
     table_token = flask_session.get("table_token")
     return render_template(
-        "public/menu.html",
+        "site/menu.html",
         categories=categories,
         items=items,
         search_q=q,
@@ -138,7 +138,7 @@ def menu_item_detail(slug):
     item = db.query(MenuItem).filter_by(slug=slug).first()
     if not item:
         abort(404)
-    return render_template("public/menu_item.html", item=item)
+    return render_template("site/menu_item.html", item=item)
 
 
 @public_bp.route("/t/<token>")
@@ -165,7 +165,7 @@ def cart():
     table_token = flask_session.get("table_token")
     table_number = flask_session.get("table_number")
     return render_template(
-        "public/cart.html",
+        "site/cart.html",
         table_token=table_token,
         table_number=table_number,
     )
@@ -181,10 +181,10 @@ def track_lookup():
         phone = (request.form.get("phone") or "").strip()
         if not order_number:
             flash("Please enter your order number.", "error")
-            return render_template("public/track_lookup.html")
+            return render_template("site/track_lookup.html")
         if not email and not phone:
             flash("Enter the email or phone used when ordering.", "error")
-            return render_template("public/track_lookup.html")
+            return render_template("site/track_lookup.html")
         db = get_session()
         order = (
             db.query(Order)
@@ -194,7 +194,7 @@ def track_lookup():
         )
         if not order:
             flash("Order not found. Check the order number.", "error")
-            return render_template("public/track_lookup.html")
+            return render_template("site/track_lookup.html")
         # Verify email or phone matches
         match = False
         if email and order.customer_email and order.customer_email.strip().lower() == email:
@@ -207,11 +207,11 @@ def track_lookup():
                 match = True
         if not match:
             flash("Email or phone does not match this order.", "error")
-            return render_template("public/track_lookup.html")
+            return render_template("site/track_lookup.html")
         for it in order.items:
             _ = list(it.addons)
         return redirect(url_for("public.track_order", token=order.tracking_token))
-    return render_template("public/track_lookup.html")
+    return render_template("site/track_lookup.html")
 
 
 @public_bp.route("/track/<token>")
@@ -227,7 +227,7 @@ def track_order(token):
     items = list(order.items)
     for it in items:
         _ = list(it.addons)
-    return render_template("public/track.html", order=order)
+    return render_template("site/track.html", order=order)
 
 
 @public_bp.route("/api/track/<token>")
@@ -269,7 +269,7 @@ def contact():
         except Exception:
             hours = {}
     return render_template(
-        "public/contact.html",
+        "site/contact.html",
         settings=settings,
         socials=socials,
         team=team,
@@ -359,7 +359,7 @@ def book_table():
             traceback.print_exc()
             flash("Booking failed. Please try again or call us.", "error")
 
-    return render_template("public/book_table.html", settings=settings)
+    return render_template("site/book_table.html", settings=settings)
 
 
 @public_bp.route("/reservation/<token>")
@@ -369,7 +369,7 @@ def reservation_confirm(token):
     reservation = db.query(Reservation).filter_by(tracking_token=token).first()
     if not reservation:
         abort(404)
-    return render_template("public/reservation_status.html", reservation=reservation)
+    return render_template("site/reservation_status.html", reservation=reservation)
 
 
 
@@ -507,7 +507,7 @@ def riders_page():
         .all()
     )
     settings = db.query(RestaurantSettings).first()
-    return render_template("public/riders.html", riders=riders, settings=settings)
+    return render_template("site/riders.html", riders=riders, settings=settings)
 
 
 @public_bp.route("/api/track/<token>/delivery")
